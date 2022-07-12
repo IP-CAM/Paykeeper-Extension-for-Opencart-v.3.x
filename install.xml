@@ -1,0 +1,51 @@
+<?xml version="2.0" encoding="utf-8"?>
+<modification>
+  <name>pk_modification</name>
+  <code>paykeeper_modification</code>
+  <version>2.0</version>
+  <author>Paykeeper</author>
+  <link>https://paykeeper.ru</link>
+        <file path="catalog/language/ru-ru/extension/payment/cheque.php">
+            <operation>
+                <search regex="true" limit="1"><![CDATA[
+                  ~\$_\['text_title'\] *= *.+~
+              ]]></search>
+                <add position="after"><![CDATA[
+                  $_['text_title']       = 'Отложенный заказ';
+              ]]></add>
+            </operation>
+            <operation>
+                <search regex="true" limit="1"><![CDATA[
+                  ~\$_\['text_instruction'\] *= *.+~
+              ]]></search>
+              <add position="after"><![CDATA[
+                  $_['text_instruction'] = 'Отложенный заказ. Инструкция';
+              ]]></add>
+            </operation>
+        </file>
+              <file path="catalog/view/theme/default/template/account/order_list.twig">
+            <operation>
+                <search><![CDATA[<td class="text-left">{{ column_date_added }}</td>]]></search>
+                <add position="after" offset="1"><![CDATA[              <td>Оплата</td>]]></add>
+            </operation>
+            <operation>
+              <search><![CDATA[<td class="text-right"><a href="{{ order.view }}" data-toggle="tooltip" title="{{ button_view }}" class="btn btn-info"><i class="fa fa-eye"></i></a></td>]]></search>
+              <add position="after" offset="0"><![CDATA[              <td class="text-left">{% if order.status == deferred_order_status %}<a href = {{ deffered_controller_link  }}{{order.order_id}} >Оплатить<a/>{% endif %}</td>]]></add>
+          </operation>
+        </file>
+                <file path="catalog/controller/account/order.php">
+            <operation>
+                <search><![CDATA[$data['header'] = $this->load->controller('common/header');]]></search>
+                <add position="after" offset="1"><![CDATA[		$this->load->model('localisation/order_status');
+		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
+		$payment_paykeeper_deferred_order_status = $this->config->get('payment_paykeeper_deferred_order_status');
+		foreach ($data['order_statuses'] as $key => $value) {
+			if ($value['order_status_id'] == $payment_paykeeper_deferred_order_status)
+			{
+				$data['deferred_order_status'] = $value['name'];
+			}			
+		}
+		$data['deffered_controller_link'] = $this->url->link('extension/payment/paykeeper/gopay', 'order_id=' , true);]]></add>
+            </operation>
+        </file>
+</modification>
