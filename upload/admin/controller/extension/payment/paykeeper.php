@@ -1,7 +1,7 @@
 <?php
 /**
   *	@author Paykeeper
-  * @version v 2.0  ;
+  * @version v 2.1  ;
   * @copyright ООО "Пейкипер процессинг"
   */
 class ControllerExtensionPaymentPaykeeper extends Controller {
@@ -147,7 +147,15 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
 		}
 
         $data['current_server_name'] = $_SERVER['SERVER_NAME'];
-
+		if (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) ||
+    	isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') 
+		{
+			$data['current_server_protocol'] = 'https://';
+		}
+		else 
+		{
+			$data['current_server_protocol'] = 'http://';
+		}
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
@@ -171,5 +179,6 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
 		return !$this->error;
 	}
 }
+
 
 

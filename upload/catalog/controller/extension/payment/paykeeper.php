@@ -161,22 +161,16 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
             //secret key
             $this->config->get('payment_paykeepersecret')
         );
-        // echo '<pre>';
-        // print_r($getRates);
-        // echo '</pre>';
+
         //GENERATE FZ54 CART
 
         $cart_data =  $this->model_account_order->getOrderProducts($order_id);
-        // echo '<pre>';
-        // print_r($cart_data);
-        // echo '</pre>';
+
         $item_index = 0;
         $tax_amount = 0;
         foreach ($cart_data as $item) 
         {
-            // echo '<pre>';
-            // print_r($item);
-            // echo '</pre>';
+
             $tax_amount = 0;
             $tax_rate = 0;
             $tax_rates = array();
@@ -184,9 +178,7 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
             $name = $item["name"];
             //vat included in price
             $product_info = $this->model_catalog_product->getProduct($item['product_id']);  
-            // echo '<pre>';
-            // print_r($product_info);
-            // echo '</pre>';
+
 
                 if ( (int) $product_info["tax_class_id"] != 0) 
                 {
@@ -198,12 +190,8 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
                     }
                 } 
 
-            $price = floatval($item['price']+$tax_amount);
+            $price = floatval(($item['price']+$tax_amount)*$order_info['currency_value']);
             $quantity = floatval($item['quantity']);
-            // echo '<pre>';
-            // print_r($this->config->get('config_tax'));
-            // echo '</pre>';
-            // die;
             if ($quantity == 1 && $pk_obj->single_item_index < 0)
                 $pk_obj->single_item_index = $item_index;
             if ($quantity > 1 && $pk_obj->more_then_one_item_index < 0)
@@ -222,7 +210,7 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
             if ($totals_item['code'] == 'shipping') 
             {
                 $shipping_taxes = array("tax" => "none", "tax_sum" => 0);
-                $pk_obj->setShippingPrice($totals_item['value']);
+                $pk_obj->setShippingPrice($totals_item['value']*$order_info['currency_value']);
                 $shipping_name = $totals_item['title'];
                 if (!$pk_obj->checkDeliveryIncluded($pk_obj->getShippingPrice(), $shipping_name)
                     && $pk_obj->getShippingPrice() > 0) {
@@ -462,7 +450,7 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
         $this->load->model('checkout/order');
 		
 		$order_info = $this->model_checkout_order->getOrder($order_id);
-		
+
         //GENERATING PAYKEEPER PAYMENT FORM
         $pk_obj = new PaykeeperPayment();
 
@@ -508,7 +496,7 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
                     $tax_amount = $item['price']*($tax_rate/100);
                 }                  
             }
-            $price = floatval($item['price']+$tax_amount);
+            $price = floatval(($item['price']+$tax_amount)*$order_info['currency_value']);
             $quantity = floatval($item['quantity']);
             if ($quantity == 1 && $pk_obj->single_item_index < 0)
                 $pk_obj->single_item_index = $item_index;
@@ -534,7 +522,7 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
             }
 
 
-            $pk_obj->setShippingPrice(floatval($this->session->data['shipping_method']['cost']+$shipping_tax_amount));
+            $pk_obj->setShippingPrice(floatval(($this->session->data['shipping_method']['cost']+$shipping_tax_amount)*$order_info['currency_value']));
             $shipping_name = $this->session->data['shipping_method']['title'];
             $shipping_taxes = $pk_obj->setTaxes($shipping_tax_rate,true);
             if (!$pk_obj->checkDeliveryIncluded($pk_obj->getShippingPrice(), $shipping_name)
@@ -638,5 +626,6 @@ class ControllerExtensionPaymentPaykeeper extends Controller {
         return $form;
     }
 }
+
 
 
